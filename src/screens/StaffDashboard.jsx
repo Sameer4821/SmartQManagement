@@ -32,6 +32,7 @@ import {
 } from "lucide-react-native";
 import { Card } from "../components/ui/card";
 import { toast } from "sonner-native";
+import { supabase } from "../services/supabaseClient";
 
 // Template data
 const TEMPLATES = [
@@ -145,24 +146,34 @@ export function StaffDashboard() {
     setAdvice("");
   };
 
-  const handleMarkComplete = () => {
+  const handleMarkComplete = async () => {
     if (!activePatient) return;
 
-    // Mark token as completed
-    const updatedTokens = appState.tokens.map((token) =>
-      token.id === activePatient.id ? { ...token, status: "completed" } : token
-    );
+    try {
+      // Update Supabase queue table
+      await supabase
+        .from('queue')
+        .update({ status: 'completed' })
+        .eq('token_id', activePatient.id);
 
-    setAppState((prev) => ({ ...prev, tokens: updatedTokens }));
-    toast.success("Consultation Completed", {
-      description: `${activePatient.patient?.name || "Patient"}'s session is closed.`,
-    });
+      // Optimistic update
+      const updatedTokens = appState.tokens.map((token) =>
+        token.id === activePatient.id ? { ...token, status: "completed" } : token
+      );
 
-    setPrescriptionMode(null);
-    
-    // Find next patient
-    const remainingTokens = allActiveTokens.filter(t => t.id !== activePatient.id);
-    setActivePatient(remainingTokens.length > 0 ? remainingTokens[0] : null);
+      setAppState((prev) => ({ ...prev, tokens: updatedTokens }));
+      toast.success("Consultation Completed", {
+        description: `${activePatient.patient?.name || "Patient"}'s session is closed.`,
+      });
+
+      setPrescriptionMode(null);
+      
+      // Find next patient
+      const remainingTokens = allActiveTokens.filter(t => t.id !== activePatient.id);
+      setActivePatient(remainingTokens.length > 0 ? remainingTokens[0] : null);
+    } catch (error) {
+      toast.error("Error", { description: "Failed to mark patient as completed." });
+    }
   };
 
   const openScanner = async () => {
@@ -186,7 +197,7 @@ export function StaffDashboard() {
     scanLockRef.current = false;
   };
 
-  const handleBarCodeScanned = ({ data }) => {
+  const handleBarCodeScanned = async ({ data }) => {
     // Prevent multiple rapid scans
     if (scanLockRef.current) return;
     scanLockRef.current = true;
@@ -207,27 +218,38 @@ export function StaffDashboard() {
       return;
     }
 
-    // Mark token as completed
-    const updatedTokens = appState.tokens.map((token) =>
-      token.id === matchedToken.id ? { ...token, status: "completed" } : token
-    );
-    setAppState((prev) => ({ ...prev, tokens: updatedTokens }));
+    try {
+      // Update Supabase queue table
+      await supabase
+        .from('queue')
+        .update({ status: 'completed' })
+        .eq('token_id', matchedToken.id);
 
-    // Set the scanned patient for display
-    setLastScannedPatient(matchedToken);
+      // Optimistic upate
+      const updatedTokens = appState.tokens.map((token) =>
+        token.id === matchedToken.id ? { ...token, status: "completed" } : token
+      );
+      setAppState((prev) => ({ ...prev, tokens: updatedTokens }));
 
-    // Find next patient in queue
-    const remainingTokens = allActiveTokens.filter((tok) => tok.id !== matchedToken.id);
-    const nextInLine = remainingTokens.length > 0 ? remainingTokens[0] : null;
-    setNextPatientAfterScan(nextInLine);
-    setActivePatient(nextInLine);
+      // Set the scanned patient for display
+      setLastScannedPatient(matchedToken);
 
-    setPrescriptionMode(null);
-    setScannerOpen(false);
+      // Find next patient in queue
+      const remainingTokens = allActiveTokens.filter((tok) => tok.id !== matchedToken.id);
+      const nextInLine = remainingTokens.length > 0 ? remainingTokens[0] : null;
+      setNextPatientAfterScan(nextInLine);
+      setActivePatient(nextInLine);
 
-    toast.success("✅ Appointment Completed", {
-      description: `${matchedToken.patient?.name || "Patient"}'s appointment has been marked complete.`,
-    });
+      setPrescriptionMode(null);
+      setScannerOpen(false);
+
+      toast.success("✅ Appointment Completed", {
+        description: `${matchedToken.patient?.name || "Patient"}'s appointment has been marked complete.`,
+      });
+    } catch (error) {
+       toast.error("Error", { description: "Failed to mark scanned patient as completed." });
+       scanLockRef.current = false;
+    }
   };
 
   const formatTokenId = (id) => {

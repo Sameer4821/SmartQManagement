@@ -312,3 +312,44 @@ html {
 .dark .bg-secondary *:not([class*="text-"]) {
   color: #000000 !important;
 }
+
+/* ================================================================
+   MOBILE RESPONSIVE OVERRIDES (≤768px)
+   These target React Native Web's rendered DOM elements.
+   Desktop layout remains completely untouched.
+   ================================================================ */
+@media (max-width: 768px) {
+  /* --- Global text overflow protection --- */
+  * {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* --- Card component: reduce padding and radius on mobile --- */
+  [data-testid],
+  div[style*="borderRadius: 24"] {
+    border-radius: 14px !important;
+  }
+
+  /* --- Prevent horizontal overflow on the whole page --- */
+  body, #root {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+
+  /* --- Ensure text elements truncate / wrap properly --- */
+  span, p, div {
+    max-width: 100%;
+  }
+
+  /* --- Reduce base font size slightly on very small screens --- */
+  html {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 480px) {
+  html {
+    font-size: 12.5px;
+  }
+}

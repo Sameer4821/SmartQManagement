@@ -35,6 +35,7 @@ var _TokenDisplay = require("./components/TokenDisplay");
 var _ConsultationCompleted = require("./components/ConsultationCompleted");
 var _AgenticChatbot = require("./components/AgenticChatbot");
 var _StaffDashboard = require("./screens/StaffDashboard");
+var _supabaseClient = require("./services/supabaseClient");
 
 var _sonnerNative = require("sonner-native");
 var _jsxRuntime = require("react/jsx-runtime");
@@ -246,6 +247,92 @@ function AppContent() {
       };
     })();
     loadData();
+    
+    // Initial fetch from Supabase queue table to populate active non-completed queues for everyone
+    var initQueue = /*#__PURE__*/ (function () {
+      var _refQ = (0, _asyncToGenerator2.default)(function* () {
+         var _yield$supabase$from = yield _supabaseClient.supabase.from('queue').select('*').neq('status', 'completed').order('created_at', { ascending: true }), data = _yield$supabase$from.data, error = _yield$supabase$from.error;
+         if (!error && data) {
+             setState(function(prev) {
+                 var updatedTokens = (0, _toConsumableArray2.default)(prev.tokens);
+                 data.forEach(function(row) {
+                     var exists = updatedTokens.find(function(t) { return t.id === row.token_id; });
+                     if (!exists) {
+                         // Build a rich local token object mapped from the flat SQL row
+                         updatedTokens.push({
+                            id: row.token_id,
+                            type: 'common',
+                            primaryDepartment: row.department,
+                            status: 'active', // 'active' corresponds to 'waiting' or 'called' mostly in this app
+                            timestamp: new Date(row.created_at),
+                            validUntil: new Date(new Date(row.created_at).getTime() + 24 * 3600000),
+                            departmentAccess: [row.department],
+                            patient: {
+                                name: row.patient_name,
+                                email: '',
+                                phone: '',
+                                age: 0,
+                                gender: 'not specified',
+                                patientId: `PAT-${Date.now()}`
+                            },
+                            visits: [],
+                            prescriptions: [],
+                            labTests: []
+                         });
+                     } else {
+                         // Update status if it changed via real-time logic while app was partially unloaded
+                         if (row.status === 'completed' || row.status === 'called') {
+                             exists.status = row.status === 'completed' ? 'completed' : 'active';
+                             if (!exists.visits) exists.visits = [];
+                         }
+                     }
+                 });
+                 return Object.assign({}, prev, { tokens: updatedTokens });
+             });
+         }
+      });
+      return function initQueue() { return _refQ.apply(this, arguments); };
+    })();
+    initQueue();
+    
+    // Subscribe to real-time events on the 'queue' table
+    var queueSubscription = _supabaseClient.supabase.channel('public:queue')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'queue' }, function(payload) {
+            if (payload.eventType === 'INSERT') {
+                setState(function(prev) {
+                    var exists = prev.tokens.find(function(t) { return t.id === payload.new.token_id; });
+                    if (exists) return prev; // If current device made the token, it's already richly populated locally
+                    
+                    var newRichToken = {
+                        id: payload.new.token_id,
+                        type: 'common',
+                        primaryDepartment: payload.new.department,
+                        status: 'active',
+                        timestamp: new Date(payload.new.created_at),
+                        validUntil: new Date(new Date().getTime() + 24 * 3600000),
+                        departmentAccess: [payload.new.department],
+                        patient: {
+                            name: payload.new.patient_name,
+                            email: '', phone: '', age: 0, gender: 'not specified', patientId: `PAT-${Date.now()}`
+                        },
+                        visits: [], prescriptions: [], labTests: []
+                    };
+                    return Object.assign({}, prev, { tokens: [].concat((0, _toConsumableArray2.default)(prev.tokens), [newRichToken]) });
+                });
+            } else if (payload.eventType === 'UPDATE') {
+                setState(function(prev) {
+                    return Object.assign({}, prev, { tokens: prev.tokens.map(function(t) {
+                        return t.id === payload.new.token_id 
+                            ? Object.assign({}, t, { status: payload.new.status === 'completed' ? 'completed' : 'active' })
+                            : t;
+                    })});
+                });
+            }
+        }).subscribe();
+        
+    return function() {
+        _supabaseClient.supabase.removeChannel(queueSubscription);
+    };
   }, []);
 
   // Sync patient info from authenticated user
