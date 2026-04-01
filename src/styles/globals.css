@@ -1,0 +1,314 @@
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  --font-size: 14px;
+  --background: #f0fdfa; /* Soft minty off-white */
+  --foreground: #0f172a; /* Slate 900 for softer contrast */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --primary: #0ea5e9; /* Calming Sky Blue / Teal */
+  --primary-foreground: #ffffff;
+  --secondary: #e0f2fe; /* Very light sky blue */
+  --secondary-foreground: #0369a1; /* Darker sky blue */
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #cffafe;
+  --accent-foreground: #0891b2;
+  --destructive: #ef4444; /* Softer red for emergency */
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: transparent;
+  --input-background: #ffffff;
+  --switch-background: #cbd5e1;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
+  --ring: #0ea5e9;
+  --chart-1: #0ea5e9;
+  --chart-2: #14b8a6;
+  --chart-3: #8b5cf6;
+  --chart-4: #f59e0b;
+  --chart-5: #ef4444;
+  --radius: 1rem; /* Softer, larger radius */
+  --sidebar: #f0fdfa;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0ea5e9;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #e0f2fe;
+  --sidebar-accent-foreground: #0369a1;
+  --sidebar-border: #bae6fd;
+  --sidebar-ring: #0ea5e9;
+  
+  /* Medical theme colors - softer, relaxing teals/blues */
+  --medical-primary: #0ea5e9;
+  --medical-secondary: #14b8a6; /* Soft Teal */
+  --medical-accent: #38bdf8;
+  --medical-background: #f0fdfa;
+  --medical-surface: #ffffff;
+  --emergency-red: #ef4444; /* Slightly softer red */
+  --emergency-background: #fef2f2;
+  --disabled-blue: #0ea5e9;
+  --disabled-background: #f0fdfa;
+}
+
+.dark {
+  --background: #0f172a; /* Slate instead of deep black */
+  --foreground: #f8fafc;
+  --card: #1e293b;
+  --card-foreground: #f8fafc;
+  --popover: #1e293b;
+  --popover-foreground: #f8fafc;
+  --primary: #38bdf8;
+  --primary-foreground: #0f172a;
+  --secondary: #334155;
+  --secondary-foreground: #f8fafc;
+  --muted: #334155;
+  --muted-foreground: #94a3b8;
+  --accent: #334155;
+  --accent-foreground: #e0f2fe;
+  --destructive: #f87171;
+  --destructive-foreground: #450a0a;
+  --border: #334155;
+  --input: #334155;
+  --input-background: #1e293b;
+  --switch-background: #475569;
+  --ring: #38bdf8;
+  --chart-1: #38bdf8;
+  --chart-2: #2dd4bf;
+  --chart-3: #a78bfa;
+  --chart-4: #fbbf24;
+  --chart-5: #f87171;
+  --sidebar: #1e293b;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #38bdf8;
+  --sidebar-primary-foreground: #0f172a;
+  --sidebar-accent: #334155;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #475569;
+  --sidebar-ring: #38bdf8;
+  
+  /* Dark theme colors - softer */
+  --medical-primary: #38bdf8;
+  --medical-secondary: #2dd4bf;
+  --medical-accent: #7dd3fc;
+  --medical-background: #0f172a;
+  --medical-surface: #1e293b;
+  --emergency-red: #f87171;
+  --emergency-background: #2a1215;
+  --disabled-blue: #38bdf8;
+  --disabled-background: #1e293b;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-input-background: var(--input-background);
+  --color-switch-background: var(--switch-background);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  
+  /* Medical theme utilities */
+  --color-medical-primary: var(--medical-primary);
+  --color-medical-secondary: var(--medical-secondary);
+  --color-medical-accent: var(--medical-accent);
+  --color-medical-background: var(--medical-background);
+  --color-medical-surface: var(--medical-surface);
+  --color-emergency-red: var(--emergency-red);
+  --color-emergency-background: var(--emergency-background);
+  --color-disabled-blue: var(--disabled-blue);
+  --color-disabled-background: var(--disabled-background);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background: linear-gradient(135deg, var(--medical-background) 0%, var(--background) 100%);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Column-wise layout utilities */
+  .column-layout {
+    @apply flex flex-col space-y-4;
+  }
+  
+  .medical-gradient {
+    background: linear-gradient(135deg, var(--medical-primary) 0%, var(--medical-secondary) 100%);
+  }
+  
+  .medical-card {
+    @apply bg-medical-surface border-primary/20 shadow-sm transition-all duration-300 ease-in-out;
+    border-left: 4px solid var(--medical-primary);
+  }
+  
+  .emergency-card {
+    @apply border-red-200 transition-all duration-300 ease-in-out;
+    background-color: var(--emergency-background);
+    border-left: 4px solid var(--emergency-red);
+  }
+  
+  .disabled-card {
+    @apply border-primary/20 transition-all duration-300 ease-in-out;
+    background-color: var(--disabled-background);
+    border-left: 4px solid var(--disabled-blue);
+  }
+  
+  /* Hospital themed background utilities */
+  .bg-gradient-radial {
+    background: radial-gradient(circle at center, var(--tw-gradient-stops));
+  }
+}
+
+/**
+ * Base typography. This is not applied to elements which have an ancestor with a Tailwind text class.
+ */
+@layer base {
+  :where(:not(:has([class*=" text-"]), :not(:has([class^="text-"])))) {
+    h1 {
+      font-size: var(--text-2xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      color: var(--medical-primary);
+    }
+
+    h2 {
+      font-size: var(--text-xl);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+      color: var(--medical-secondary);
+    }
+
+    h3 {
+      font-size: var(--text-lg);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    h4 {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    p {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.5;
+    }
+
+    label {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    button {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-medium);
+      line-height: 1.4;
+    }
+
+    input {
+      font-size: var(--text-base);
+      font-weight: var(--font-weight-normal);
+      line-height: 1.4;
+    }
+  }
+}
+
+html {
+  font-size: var(--font-size);
+}
+
+/* Custom animations for notifications */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.notification-slide {
+  animation: slideInRight 0.3s ease-out;
+}
+
+/* Dark theme specific overrides */
+.dark .medical-gradient {
+  background: linear-gradient(135deg, var(--medical-primary) 0%, var(--medical-secondary) 100%);
+}
+
+.dark .medical-card {
+  background-color: var(--medical-surface);
+  border-color: var(--medical-primary);
+}
+
+.dark .emergency-card {
+  background-color: var(--emergency-background);
+  border-color: var(--emergency-red);
+}
+
+.dark .disabled-card {
+  background-color: var(--disabled-background);
+  border-color: var(--disabled-blue);
+}
+
+/* Dark theme text contrast fixes */
+.dark [class*="bg-white"], 
+.dark [class*="bg-gray-50"], 
+.dark [class*="bg-blue-50"], 
+.dark [class*="bg-medical-surface"],
+.dark .bg-card,
+.dark .bg-popover,
+.dark .bg-secondary {
+  color: #000000 !important;
+}
+
+.dark [class*="bg-white"] *:not([class*="text-"]), 
+.dark [class*="bg-gray-50"] *:not([class*="text-"]), 
+.dark [class*="bg-blue-50"] *:not([class*="text-"]),
+.dark [class*="bg-medical-surface"] *:not([class*="text-"]),
+.dark .bg-card *:not([class*="text-"]),
+.dark .bg-popover *:not([class*="text-"]),
+.dark .bg-secondary *:not([class*="text-"]) {
+  color: #000000 !important;
+}
