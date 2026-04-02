@@ -10,7 +10,9 @@ var _card = require("../components/ui/card");
 var _badge = require("../components/ui/badge");
 
 var _lucideReactNative = require("lucide-react-native");
-var _asyncStorage = _interopRequireDefault(require("@react-native-async-storage/async-storage")); var _jsxRuntime = require("react/jsx-runtime"); function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }// import { Progress } from './ui/progress';
+var _asyncStorage = _interopRequireDefault(require("@react-native-async-storage/async-storage")); 
+var _supabaseClient = require("../services/supabaseClient");
+var _jsxRuntime = require("react/jsx-runtime"); function _interopRequireWildcard(e, t) { if ("function" == typeof WeakMap) var r = new WeakMap(), n = new WeakMap(); return (_interopRequireWildcard = function _interopRequireWildcard(e, t) { if (!t && e && e.__esModule) return e; var o, i, f = { __proto__: null, default: e }; if (null === e || "object" != typeof e && "function" != typeof e) return f; if (o = t ? n : r) { if (o.has(e)) return o.get(e); o.set(e, f); } for (var _t in e) "default" !== _t && {}.hasOwnProperty.call(e, _t) && ((i = (o = Object.defineProperty) && Object.getOwnPropertyDescriptor(e, _t)) && (i.get || i.set) ? o(f, _t, i) : f[_t] = e[_t]); return f; })(e, t); }// import { Progress } from './ui/progress';
 
 
 
@@ -24,6 +26,45 @@ function PatientDashboard() {
     var _useState3 = (0, _react.useState)(false), _useState4 = (0, _slicedToArray2.default)(_useState3, 2), showDepartmentStats = _useState4[0], setShowDepartmentStats = _useState4[1];
     var _useState5 = (0, _react.useState)(false), _useState6 = (0, _slicedToArray2.default)(_useState5, 2), showPatientHistory = _useState6[0], setShowPatientHistory = _useState6[1];
     var remainingEmergency = state.maxEmergencyPerDay - state.emergencyCount;
+
+    var _useState7 = (0, _react.useState)(null), _useState8 = (0, _slicedToArray2.default)(_useState7, 2), latestPrescription = _useState8[0], setLatestPrescription = _useState8[1];
+    var pulseAnim = (0, _react.useRef)(new _reactNative.Animated.Value(0)).current;
+
+    (0, _react.useEffect)(function() {
+        if (!state.patientInfo) return;
+        var patientId = state.patientInfo.phone || state.patientInfo.email;
+        if (!patientId) return;
+
+        var activeToken = state.tokens.find(function(t) { return t.patient.email === state.patientInfo.email && t.status === 'active'; });
+        if (!activeToken) return;
+
+        var setPrescriptionFromPayload = function(payload) {
+            if (payload.new && payload.new.token_id === activeToken.id) {
+                setLatestPrescription(payload.new);
+            }
+        };
+
+        var channel = _supabaseClient.supabase.channel('public:prescriptions')
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'prescriptions', filter: 'patient_id=eq.' + patientId }, setPrescriptionFromPayload)
+            .subscribe();
+
+        return function() {
+            _supabaseClient.supabase.removeChannel(channel);
+        };
+    }, [state.patientInfo, state.tokens]);
+
+    (0, _react.useEffect)(function() {
+        if (latestPrescription) {
+            _reactNative.Animated.loop(
+                _reactNative.Animated.sequence([
+                    _reactNative.Animated.timing(pulseAnim, { toValue: 1, duration: 800, useNativeDriver: false }),
+                    _reactNative.Animated.timing(pulseAnim, { toValue: 0, duration: 800, useNativeDriver: false })
+                ])
+            ).start();
+        } else {
+            pulseAnim.setValue(0);
+        }
+    }, [latestPrescription, pulseAnim]);
 
     var handleCategorySelect = function handleCategorySelect(category) {
         setState(function (prev) { return Object.assign({}, prev, { currentView: category }); });
@@ -70,20 +111,29 @@ function PatientDashboard() {
         (0, _jsxRuntime.jsxs)(_reactNative.ScrollView, {
             contentContainerStyle: [styles.container, isMobile && styles.containerMobile], children: [/*#__PURE__*/
 
-                (0, _jsxRuntime.jsx)(_card.Card, {
-                    style: [styles.card, isMobile && styles.cardMobile], children:/*#__PURE__*/
+                isMobile ? /*#__PURE__*/ (0, _jsxRuntime.jsxs)(_reactNative.View, {
+                    style: styles.mobileHeaderWrapper, children: [/*#__PURE__*/
+                        (0, _jsxRuntime.jsx)(_reactNative.Text, { style: styles.mobileHeaderTitle, children: t.pdTitle }),/*#__PURE__*/
+                        (0, _jsxRuntime.jsxs)(_reactNative.View, {
+                            style: styles.mobileHeaderIcons, children: [/*#__PURE__*/
+                                (0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, { onPress: function onPress() { return setShowSettings(true); }, children: /*#__PURE__*/ (0, _jsxRuntime.jsx)(_lucideReactNative.Settings, { size: 22, color: "#374151", strokeWidth: 2.5 }) }),/*#__PURE__*/
+                                (0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, { onPress: handleChangeDetails, style: { marginLeft: 16 }, children: /*#__PURE__*/ (0, _jsxRuntime.jsx)(_lucideReactNative.Pencil, { size: 22, color: "#374151", strokeWidth: 2.5 }) }),/*#__PURE__*/
+                                (0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, { onPress: handleLogout, style: { marginLeft: 16 }, children: /*#__PURE__*/ (0, _jsxRuntime.jsx)(_lucideReactNative.LogOut, { size: 22, color: "#374151", strokeWidth: 2.5 }) })]
+                        })]
+                }) : /*#__PURE__*/ (0, _jsxRuntime.jsx)(_card.Card, {
+                    style: styles.card, children:/*#__PURE__*/
                         (0, _jsxRuntime.jsx)(_card.CardHeader, {
                             children:/*#__PURE__*/
                                 (0, _jsxRuntime.jsxs)(_reactNative.View, {
-                                    style: [styles.headerRow, isMobile && styles.headerRowMobile], children: [/*#__PURE__*/
+                                    style: styles.headerRow, children: [/*#__PURE__*/
                                         (0, _jsxRuntime.jsxs)(_reactNative.View, {
                                             style: { flex: 1 }, children: [/*#__PURE__*/
-                                                (0, _jsxRuntime.jsx)(_reactNative.Text, { style: [styles.title, isMobile && styles.titleMobile], children: t.pdTitle }),/*#__PURE__*/
-                                                (0, _jsxRuntime.jsx)(_reactNative.Text, { style: [styles.subtitle, isMobile && styles.subtitleMobile], children: t.pdSubtitle })]
+                                                (0, _jsxRuntime.jsx)(_reactNative.Text, { style: styles.title, children: t.pdTitle }),/*#__PURE__*/
+                                                (0, _jsxRuntime.jsx)(_reactNative.Text, { style: styles.subtitle, children: t.pdSubtitle })]
                                         }
                                         ),/*#__PURE__*/
                                         (0, _jsxRuntime.jsxs)(_reactNative.View, {
-                                            style: [styles.headerActions, isMobile && styles.headerActionsMobile], children: [/*#__PURE__*/
+                                            style: styles.headerActions, children: [/*#__PURE__*/
                                                 (0, _jsxRuntime.jsxs)(_button.Button, {
                                                     variant: "outline", size: "sm", onPress: function onPress() { return setShowSettings(true); }, style: { marginBottom: 8 }, children: [/*#__PURE__*/
                                                         (0, _jsxRuntime.jsx)(_lucideReactNative.Settings, { size: 16, color: "#374151", style: { marginRight: 4 } }),/*#__PURE__*/
@@ -112,7 +162,7 @@ function PatientDashboard() {
 
 
                 (0, _jsxRuntime.jsx)(_card.Card, {
-                    style: [styles.card, isMobile && styles.cardMobile, { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' }], children:/*#__PURE__*/
+                    style: [styles.card, isMobile && styles.cardMobile, !isMobile ? { backgroundColor: '#eff6ff', borderColor: '#bfdbfe' } : { backgroundColor: '#ffffff', borderColor: '#e2e8f0', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.1, shadowRadius: 2, elevation: 2 }], children:/*#__PURE__*/
                         (0, _jsxRuntime.jsxs)(_card.CardContent, {
                             style: styles.welcomeContent, children: [/*#__PURE__*/
                                 (0, _jsxRuntime.jsxs)(_reactNative.View, {
@@ -128,7 +178,18 @@ function PatientDashboard() {
                                         !isNarrow && (0, _jsxRuntime.jsx)(_badge.Badge, { variant: "secondary", children:/*#__PURE__*/(0, _jsxRuntime.jsx)(_reactNative.Text, { children: t.pdLoggedInAs }) })]
                                 }
                                 ),/*#__PURE__*/
-                                (0, _jsxRuntime.jsx)(_reactNative.View, { style: { alignItems: 'center', marginTop: 16 } }
+                                (0, _jsxRuntime.jsx)(_reactNative.Animated.View, { 
+                                    style: { 
+                                        marginTop: 12, 
+                                        opacity: latestPrescription ? _reactNative.Animated.add(0.5, _reactNative.Animated.multiply(pulseAnim, 0.5)) : 0.5 
+                                    }, children:/*#__PURE__*/
+                                        (0, _jsxRuntime.jsxs)(_reactNative.TouchableOpacity, {
+                                            disabled: !latestPrescription,
+                                            style: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: latestPrescription ? '#2563eb' : '#e2e8f0', paddingVertical: 10, borderRadius: 8 }, children: [/*#__PURE__*/
+                                                (0, _jsxRuntime.jsx)(_lucideReactNative.FileText, { size: 18, color: latestPrescription ? "#ffffff" : "#94a3b8", style: { marginRight: 8 } }),/*#__PURE__*/
+                                                (0, _jsxRuntime.jsx)(_reactNative.Text, { style: { color: latestPrescription ? "#ffffff" : "#94a3b8", fontWeight: '600' }, children: latestPrescription ? "View Prescription" : "No prescriptions yet" })]
+                                        })
+                                }
                                 )]
                         }
                         )
@@ -137,14 +198,14 @@ function PatientDashboard() {
 
 
                 (0, _jsxRuntime.jsxs)(_card.Card, {
-                    style: [styles.card, isMobile && styles.cardMobile], children: [/*#__PURE__*/
+                    style: [styles.card, isMobile && styles.cardMobile, isMobile && { backgroundColor: 'transparent', borderWidth: 0, shadowOpacity: 0, elevation: 0 }], children: [/*#__PURE__*/
                         (0, _jsxRuntime.jsx)(_card.CardHeader, {
-                            style: { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, children:/*#__PURE__*/
-                                (0, _jsxRuntime.jsx)(_card.CardTitle, { children: t.pdSelectCategory })
+                            style: [ { alignItems: 'center', flexDirection: 'row', justifyContent: 'space-between' }, isMobile && { paddingHorizontal: 4, paddingBottom: 16 } ], children:/*#__PURE__*/
+                                (0, _jsxRuntime.jsx)(_card.CardTitle, { style: isMobile && { fontSize: 20, color: '#0f172a' }, children: t.pdSelectCategory })
                         }
                         ),/*#__PURE__*/
                         (0, _jsxRuntime.jsxs)(_card.CardContent, {
-                            style: styles.grid, children: [/*#__PURE__*/
+                            style: [styles.grid, isMobile && { paddingHorizontal: 0 }], children: [/*#__PURE__*/
 
                                 (0, _jsxRuntime.jsx)(_reactNative.TouchableOpacity, {
                                     onPress: function onPress() { return handleCategorySelect('common'); }, activeOpacity: 0.8, style: { width: '100%' }, children:/*#__PURE__*/
@@ -309,15 +370,18 @@ var styles = _reactNative.StyleSheet.create({
     subtitleMobile: { fontSize: 12 },
     headerActions: { alignItems: 'flex-end' },
     headerActionsMobile: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, alignSelf: 'stretch' },
+    mobileHeaderWrapper: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingHorizontal: 4, marginTop: 4 },
+    mobileHeaderTitle: { fontSize: 24, fontWeight: 'bold', color: '#334155', flexShrink: 1, marginRight: 8, letterSpacing: -0.5 },
+    mobileHeaderIcons: { flexDirection: 'row', alignItems: 'center', paddingRight: 4 },
     welcomeContent: { paddingTop: 24 },
     welcomeRow: { flexDirection: 'row', alignItems: 'center' },
     welcomeRowMobile: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' },
     userIconWrap: { width: 48, height: 48, backgroundColor: '#dbeafe', borderRadius: 24, alignItems: 'center', justifyContent: 'center', marginRight: 16 },
     userIconWrapMobile: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
-    welcomeTitle: { fontWeight: '600', color: '#1e40af', fontSize: 18 },
-    welcomeTitleMobile: { fontSize: 14 },
-    welcomeSub: { fontSize: 14, color: '#6b7280' },
-    welcomeSubMobile: { fontSize: 12 },
+    welcomeTitle: { fontWeight: '700', color: '#0f172a', fontSize: 18, letterSpacing: -0.3 },
+    welcomeTitleMobile: { fontSize: 16 },
+    welcomeSub: { fontSize: 14, color: '#475569', marginTop: 2, fontWeight: '500' },
+    welcomeSubMobile: { fontSize: 13 },
     grid: { gap: 16 },
     cardItem: { marginBottom: 12 },
     cardItemMobile: { marginBottom: 8 },

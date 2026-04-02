@@ -33,7 +33,6 @@ var _EmergencyUserFlow = require("./components/EmergencyUserFlow");
 var _DisabledUserFlow = require("./components/DisabledUserFlow");
 var _TokenDisplay = require("./components/TokenDisplay");
 var _ConsultationCompleted = require("./components/ConsultationCompleted");
-var _AgenticChatbot = require("./components/AgenticChatbot");
 var _StaffDashboard = require("./screens/StaffDashboard");
 var _supabaseClient = require("./services/supabaseClient");
 
@@ -883,11 +882,6 @@ function AppContent() {
                   children: renderCurrentView(),
                 }),
 
-            state.patientInfo &&
-              /*#__PURE__*/ (0, _jsxRuntime.jsx)(
-                _AgenticChatbot.AgenticChatbot,
-                {},
-              ) /*#__PURE__*/,
             (0, _jsxRuntime.jsx)(_sonnerNative.Toaster, {}),
           ],
         },

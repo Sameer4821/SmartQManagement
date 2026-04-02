@@ -121,7 +121,7 @@ export function StaffDashboard() {
     setMedicines(updated);
   };
 
-  const handleSavePrescription = () => {
+  const handleSavePrescription = async () => {
     if (!activePatient) return;
 
     const prescription = {
@@ -134,6 +134,26 @@ export function StaffDashboard() {
     };
 
     addPrescriptionToToken(activePatient.id, prescription);
+
+    // Save to Supabase to trigger realtime sync
+    try {
+      const { error } = await supabase.from('prescriptions').insert({
+        token_id: activePatient.id,
+        patient_id: activePatient.patient?.phone || activePatient.patient?.email || "unknown",
+        doctor_id: appState.staffInfo?.id || 'staff',
+        department: activePatient.primaryDepartment,
+        diagnosis,
+        medicines,
+        advice,
+        mode: prescriptionMode
+      });
+      if (error) {
+        console.error("Supabase insert error:", error);
+        toast.error("Sync partial", { description: "Saved locally but failed to push to server." });
+      }
+    } catch (err) {
+      console.error("Error saving prescription to Supabase:", err);
+    }
     
     toast.success("Prescription Saved", {
       description: "Available in patient records.",
