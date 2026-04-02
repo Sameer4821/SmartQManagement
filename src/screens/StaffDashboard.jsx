@@ -56,21 +56,30 @@ export function StaffDashboard() {
   // Camera permissions
   const [permission, requestPermission] = useCameraPermissions();
   
-  // Sort queue by priority
+  // Sort queue strictly by priority
   const priorityMap = { emergency: 1, disabled: 2, common: 3 };
   
   // All active tokens
-  const allActiveTokens = (appState.tokens || []).filter(t => t.status === "active").sort((a, b) => {
+  const allActiveTokens = (appState.tokens || []).filter(t => t.status === "active" || t.status === "waiting").sort((a, b) => {
+    const isAEmergency = a.type?.toLowerCase() === 'emergency' || a.primaryDepartment?.toLowerCase() === 'emergency';
+    const isBEmergency = b.type?.toLowerCase() === 'emergency' || b.primaryDepartment?.toLowerCase() === 'emergency';
+
+    // Ultimate first priority for Emergency
+    if (isAEmergency && !isBEmergency) return -1;
+    if (!isAEmergency && isBEmergency) return 1;
+
+    // Below them, sort by standard priority map or generation time
     const pA = priorityMap[a.type] || 3;
     const pB = priorityMap[b.type] || 3;
     if (pA !== pB) return pA - pB;
+    
     return new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime();
   });
 
   const [activePatient, setActivePatient] = useState(allActiveTokens.length > 0 ? allActiveTokens[0] : null);
   
-  // Upcoming queue is the next 3 patients excluding active
-  const upcomingQueue = allActiveTokens.filter(t => t.id !== activePatient?.id).slice(0, 3);
+  // Upcoming queue is all other patients (Fully viewable instead of just 3)
+  const upcomingQueue = allActiveTokens.filter(t => t.id !== activePatient?.id);
   const totalWaiting = allActiveTokens.length;
 
   // Track prescription mode
@@ -93,6 +102,50 @@ export function StaffDashboard() {
       setActivePatient(allActiveTokens[0]);
     }
   }, [allActiveTokens]);
+
+  // Supabase Real-Time Sync for Token Queue
+  useEffect(() => {
+    const channel = supabase.channel('public:queue_sync')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'queue' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const newRow = payload.new;
+          const mappedToken = {
+             id: newRow.token_id,
+             type: newRow.department?.toLowerCase() === 'emergency' ? 'emergency' : 'common',
+             primaryDepartment: newRow.department,
+             timestamp: newRow.created_at ? new Date(newRow.created_at) : new Date(),
+             patient: {
+                name: newRow.patient_name || 'Walk-in Patient',
+             },
+             status: newRow.status || 'active',
+             qrCode: newRow.token_id
+          };
+
+          setAppState(prev => {
+             const exists = prev.tokens.find(t => t.id === mappedToken.id);
+             if (exists) return prev;
+             return { ...prev, tokens: [...prev.tokens, mappedToken] };
+          });
+        } 
+        else if (payload.eventType === 'UPDATE') {
+          setAppState(prev => ({
+             ...prev,
+             tokens: prev.tokens.map(t => t.id === payload.new.token_id ? { ...t, status: payload.new.status } : t)
+          }));
+        } 
+        else if (payload.eventType === 'DELETE') {
+          setAppState(prev => ({
+             ...prev,
+             tokens: prev.tokens.filter(t => t.id !== payload.old.token_id)
+          }));
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
   const handleBack = () => {
     setAppState((prev) => ({ ...prev, currentView: "portal" }));
@@ -617,28 +670,34 @@ export function StaffDashboard() {
 
         {/* 5. UPCOMING QUEUE SECTION */}
         <View style={styles.queueSection}>
-          <Text style={styles.sectionTitle}>Upcoming Queue (Next {upcomingQueue.length})</Text>
-          {upcomingQueue.map((item) => (
-            <View key={item.id} style={styles.queueItem}>
-              <View style={[styles.smallTokenCircle, { backgroundColor: getPriorityColors(item.type).bg }]}>
-                <Text style={[styles.smallTokenText, { color: getPriorityColors(item.type).text }]}>
-                  {formatTokenId(item.id)}
-                </Text>
+          <Text style={styles.sectionTitle}>Upcoming Queue (All {upcomingQueue.length})</Text>
+          <ScrollView 
+            style={styles.upcomingQueueScroll} 
+            showsVerticalScrollIndicator={true}
+            nestedScrollEnabled={true}
+          >
+            {upcomingQueue.map((item) => (
+              <View key={item.id} style={styles.queueItem}>
+                <View style={[styles.smallTokenCircle, { backgroundColor: getPriorityColors(item.type).bg }]}>
+                  <Text style={[styles.smallTokenText, { color: getPriorityColors(item.type).text }]}>
+                    {formatTokenId(item.id)}
+                  </Text>
+                </View>
+                <View style={styles.queueItemInfo}>
+                  <Text style={styles.queueItemName}>{item.patient?.name || "Patient"}</Text>
+                  <Text style={styles.queueItemType}>{item.primaryDepartment || "General"}</Text>
+                </View>
+                <View style={[styles.queueBadge, { borderColor: getPriorityColors(item.type).border }]}>
+                  <Text style={[styles.queueBadgeText, { color: getPriorityColors(item.type).text }]}>
+                    {getPriorityColors(item.type).name}
+                  </Text>
+                </View>
               </View>
-              <View style={styles.queueItemInfo}>
-                <Text style={styles.queueItemName}>{item.patient?.name || "Patient"}</Text>
-                <Text style={styles.queueItemType}>{item.primaryDepartment || "General"}</Text>
-              </View>
-              <View style={[styles.queueBadge, { borderColor: getPriorityColors(item.type).border }]}>
-                <Text style={[styles.queueBadgeText, { color: getPriorityColors(item.type).text }]}>
-                  {getPriorityColors(item.type).name}
-                </Text>
-              </View>
-            </View>
-          ))}
-          {upcomingQueue.length === 0 && (
-            <Text style={styles.emptyQueueText}>No upcoming patients.</Text>
-          )}
+            ))}
+            {upcomingQueue.length === 0 && (
+              <Text style={styles.emptyQueueText}>No upcoming patients.</Text>
+            )}
+          </ScrollView>
         </View>
 
       </ScrollView>
@@ -988,4 +1047,5 @@ const styles = StyleSheet.create({
   emptyState: { alignItems: "center", justifyContent: "center", padding: 40, backgroundColor: "#fff", borderRadius: 16, marginBottom: 24, borderWidth: 1, borderColor: "#e2e8f0" },
   emptyTitle: { fontSize: 22, fontWeight: "700", color: "#0f172a", marginBottom: 8 },
   emptySub: { fontSize: 15, color: "#64748b", textAlign: "center" },
+  upcomingQueueScroll: { maxHeight: 350, marginTop: 4 },
 });
