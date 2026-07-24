@@ -260,7 +260,7 @@ function AppContent() {
                          // Build a rich local token object mapped from the flat SQL row
                          updatedTokens.push({
                             id: row.token_id,
-                            type: 'common',
+                            type: row.token_id && row.token_id.startsWith('EME') ? 'emergency' : row.token_id && row.token_id.startsWith('ACE') ? 'disabled' : 'common',
                             primaryDepartment: row.department,
                             status: 'active', // 'active' corresponds to 'waiting' or 'called' mostly in this app
                             timestamp: new Date(row.created_at),
@@ -304,7 +304,7 @@ function AppContent() {
                     
                     var newRichToken = {
                         id: payload.new.token_id,
-                        type: 'common',
+                        type: payload.new.token_id && payload.new.token_id.startsWith('EME') ? 'emergency' : payload.new.token_id && payload.new.token_id.startsWith('ACE') ? 'disabled' : 'common',
                         primaryDepartment: payload.new.department,
                         status: 'active',
                         timestamp: new Date(payload.new.created_at),

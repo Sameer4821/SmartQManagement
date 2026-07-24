@@ -233,7 +233,7 @@ function TokenDisplay(_ref) {
                                                                                         token.primaryDepartment || 'N/A']
                                                                                 }
                                                                                 ),/*#__PURE__*/
-                                                                                (0, _jsxRuntime.jsxs)(_reactNative.Text, {
+                                                                                token.type !== 'emergency' && (0, _jsxRuntime.jsxs)(_reactNative.Text, {
                                                                                     style: [styles.detailText, isMobile && styles.detailTextMobile], children: [/*#__PURE__*/
                                                                                         (0, _jsxRuntime.jsx)(_reactNative.Text, { style: styles.detailLabel, children: "Time Slot: " }),/*#__PURE__*/
                                                                                         (0, _jsxRuntime.jsxs)(_reactNative.Text, {

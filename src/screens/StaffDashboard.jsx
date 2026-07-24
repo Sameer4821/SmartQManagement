@@ -111,7 +111,7 @@ export function StaffDashboard() {
           const newRow = payload.new;
           const mappedToken = {
              id: newRow.token_id,
-             type: newRow.department?.toLowerCase() === 'emergency' ? 'emergency' : 'common',
+             type: newRow.token_id && newRow.token_id.startsWith('EME') ? 'emergency' : newRow.token_id && newRow.token_id.startsWith('ACE') ? 'disabled' : 'common',
              primaryDepartment: newRow.department,
              timestamp: newRow.created_at ? new Date(newRow.created_at) : new Date(),
              patient: {
