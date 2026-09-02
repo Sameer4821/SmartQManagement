@@ -311,12 +311,6 @@ Authentication is handled both at the frontend (Supabase client for patient logi
 
 ---
 
-<p align="center">
-  Built with ❤️ by SAM
-</p>
-
----
-
 ## ✨ Features
 
 ### 🧑‍⚕️ Patient Portal
@@ -603,5 +597,5 @@ Phone OTP authentication is configured through Supabase with Twilio as the SMS p
 ---
 
 <p align="center">
-   SAM
+  Built with ❤️ by SAM
 </p>

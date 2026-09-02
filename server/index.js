@@ -10,6 +10,7 @@ app.use(cors({
   origin: process.env.CLIENT_URL || 'http://localhost:5173',
   credentials: true
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
@@ -26,21 +27,37 @@ app.use('/api/staff', require('./routes/staff'));
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ success: false, error: 'Route not found' });
+  res.status(404).json({
+    success: false,
+    error: 'Route not found'
+  });
 });
 
 // Error handler
 app.use((err, req, res, next) => {
   console.error('Unhandled error:', err);
-  res.status(500).json({ success: false, error: 'Internal server error' });
+
+  res.status(500).json({
+    success: false,
+    error: 'Internal server error'
+  });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Smart Queue API server running on http://localhost:${PORT}`);
-  console.log(`   Health check: http://localhost:${PORT}/health`);
-});
+// Export Express app for Vercel
+module.exports = app;
+
+// Run server locally
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Smart Queue API server running on http://localhost:${PORT}`);
+    console.log(`   Health check: http://localhost:${PORT}/health`);
+  });
+}
