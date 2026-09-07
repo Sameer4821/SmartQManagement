@@ -80,17 +80,20 @@ export default function StaffDashboardPage() {
 
   const [isSyncing, setIsSyncing] = useState(false);
 
-  const formatTokenRow = (row) => ({
-    id: row.token_id || row.id,
-    token_id: row.token_id || row.id,
+  const formatTokenRow = (row) => {
+    const tokenId = row.token_id || row.id;
+    const tokenType = row.type || (tokenId?.startsWith('EME') ? 'emergency' : tokenId?.startsWith('ACE') ? 'disabled' : 'common');
+    return {
+    id: tokenId,
+    token_id: tokenId,
     tokenNumber: row.token_number || 1,
-    type: row.type || 'common',
+    type: tokenType,
     primaryDepartment: row.department_name || row.department || 'General Medicine',
     department_name: row.department_name || row.department || 'General Medicine',
     doctor_id: row.doctor_id || null,
     doctor_name: row.doctor_name || null,
     status: row.status || 'waiting',
-    priority: row.priority || (row.type === 'emergency' ? 10 : row.type === 'disabled' ? 8 : 3),
+    priority: row.priority || (tokenType === 'emergency' ? 10 : tokenType === 'disabled' ? 8 : 3),
     timestamp: new Date(row.created_at || Date.now()),
     validUntil: new Date(row.valid_until || Date.now() + 24 * 3600000),
     completed_at: row.completed_at || null,
@@ -115,7 +118,8 @@ export default function StaffDashboardPage() {
       patientId: row.patient_id || `PAT-${row.token_id || row.id}`
     },
     visits: [], labTests: [],
-  });
+  };
+};
 
   const fetchLiveTokens = async () => {
     let rawTokens = null;
@@ -158,15 +162,25 @@ export default function StaffDashboardPage() {
   };
 
   // Auto-sync tokens from API/Supabase across all devices every 4 seconds
+  // ponytail: merge instead of replace — avoids clobbering local-only tokens when poll
+  // returns fewer rows than already in state (race with realtime, or partial fetch).
   useEffect(() => {
     const syncLiveQueue = async () => {
       try {
         const rawTokens = await fetchLiveTokens();
-        if (rawTokens && rawTokens.length > 0) {
-          setAppState(prev => ({
-            ...prev,
-            tokens: rawTokens.map(formatTokenRow)
-          }));
+        if (Array.isArray(rawTokens) && rawTokens.length > 0) {
+          const serverIds = new Set(rawTokens.map(r => r.token_id || r.id));
+          setAppState(prev => {
+            // Merge: keep all local tokens, add/replace any server tokens not in state
+            const merged = [...prev.tokens];
+            rawTokens.forEach(row => {
+              const id = row.token_id || row.id;
+              if (!merged.some(t => t.id === id)) {
+                merged.push(formatTokenRow(row));
+              }
+            });
+            return { ...prev, tokens: merged };
+          });
         }
       } catch (err) {
         console.warn('Queue sync polling error:', err);
@@ -228,15 +242,9 @@ export default function StaffDashboardPage() {
         valid_until: new Date(Date.now() + 24 * 3600000).toISOString()
       };
 
-      try {
-        await queueApi.insert(demoTokenPayload);
-      } catch (err) {
-        console.warn('API demo insert error:', err);
-      }
-      try {
-        await supabase.from('queue_tokens').insert([demoTokenPayload]);
-      } catch (err) {
-        console.warn('Supabase demo insert fallback:', err);
+      const writeRes = await queueApi.write(demoTokenPayload);
+      if (!writeRes.success) {
+        console.error('Demo patient insert failed:', writeRes.error);
       }
 
       const formatted = formatTokenRow(demoTokenPayload);
@@ -272,8 +280,8 @@ export default function StaffDashboardPage() {
     if (!patientToken) return;
     setSaving(true);
     try {
-      await queueApi.updateStatus(patientToken.id, 'called');
-      await supabase.from('queue_tokens').update({ status: 'called' }).eq('token_id', patientToken.id);
+      const res = await queueApi.update(patientToken.id, { status: 'called' });
+      if (!res.success) console.error('Call status update failed:', res.error);
 
       setAppState(prev => ({
         ...prev,
@@ -320,8 +328,8 @@ export default function StaffDashboardPage() {
     setSaving(true);
     const completedAt = new Date().toISOString();
     try {
-      await queueApi.updateStatus(activePatient.id, 'completed');
-      await supabase.from('queue_tokens').update({ status: 'completed', completed_at: completedAt }).eq('token_id', activePatient.id);
+      const res = await queueApi.update(activePatient.id, { status: 'completed', completed_at: completedAt });
+      if (!res.success) console.error('Mark complete update failed:', res.error);
 
       setAppState(prev => ({
         ...prev,
@@ -418,9 +426,9 @@ export default function StaffDashboardPage() {
       setSuccessMsg(`✅ Patient Verified via QR: ${found.patient?.name || 'Patient'} (${formatTokenId(found.id)})`);
       setTimeout(() => setSuccessMsg(''), 4500);
 
-      try {
-        await supabase.from('queue_tokens').update({ status: 'called' }).eq('token_id', found.id);
-      } catch { /* ignore */ }
+      queueApi.update(found.id, { status: 'called' }).catch(err => {
+        console.error('QR scan status update failed:', err);
+      });
     } else {
       setSuccessMsg(`⚠️ Scanned Code "${query}" is not recognized in hospital queue.`);
       setTimeout(() => setSuccessMsg(''), 4000);

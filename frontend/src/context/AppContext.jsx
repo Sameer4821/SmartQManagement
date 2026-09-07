@@ -181,17 +181,18 @@ export function AppProvider({ children }) {
   const formatSupabaseTokenRow = (row) => {
     const tokenId = row.token_id || row.id;
     const deptName = row.department_name || row.department || 'General Medicine';
+    const tokenType = row.type || (tokenId?.startsWith('EME') ? 'emergency' : tokenId?.startsWith('ACE') ? 'disabled' : 'common');
     return {
       id: tokenId,
       token_id: tokenId,
       tokenNumber: row.token_number || 1,
-      type: row.type || (tokenId?.startsWith('EME') ? 'emergency' : tokenId?.startsWith('ACE') ? 'disabled' : 'common'),
+      type: tokenType,
       primaryDepartment: deptName,
       department_name: deptName,
       doctor_id: row.doctor_id || null,
       doctor_name: row.doctor_name || null,
       status: row.status || 'waiting',
-      priority: row.priority || (row.type === 'emergency' ? 10 : row.type === 'disabled' ? 8 : 3),
+      priority: row.priority || (tokenType === 'emergency' ? 10 : tokenType === 'disabled' ? 8 : 3),
       timestamp: new Date(row.created_at || Date.now()),
       validUntil: new Date(row.valid_until || Date.now() + 24 * 3600000),
       completed_at: row.completed_at || null,

@@ -4,7 +4,6 @@ import {
   ArrowLeft, AlertTriangle, ShieldAlert, Circle, CircleDot, Activity, Info
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { supabase } from '../api/supabaseClient';
 import { queueApi } from '../api/index';
 
 
@@ -144,18 +143,12 @@ export default function EmergencyUserFlowPage() {
         valid_until: newToken.validUntil.toISOString()
       };
 
-      // 1. Save via Express API (guaranteed server admin access)
-      try {
-        await queueApi.insert(tokenPayload);
-      } catch (apiErr) {
-        console.warn('API queue insert fallback:', apiErr);
-      }
-
-      // 2. Direct Supabase insert
-      try {
-        await supabase.from('queue_tokens').insert([tokenPayload]);
-      } catch (sbErr) {
-        console.warn('Supabase direct insert fallback:', sbErr);
+      // Verified write: checks .error from both Express and Supabase paths
+      const writeRes = await queueApi.write(tokenPayload);
+      if (!writeRes.success) {
+        console.error('Emergency token booking failed:', writeRes.error);
+        alert('Emergency booking failed. Please contact emergency desk directly.');
+        return;
       }
 
       sendEmergencyNotification(newToken.primaryDepartment);
@@ -171,6 +164,7 @@ export default function EmergencyUserFlowPage() {
       navigate('/token');
     } catch (error) {
       console.error(error);
+      alert('Emergency booking failed. Please contact emergency desk directly.');
     } finally {
       setLoading(false);
     }

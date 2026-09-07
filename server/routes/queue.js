@@ -106,7 +106,7 @@ router.post('/', async (req, res) => {
     // 2. Prepare structured token payload
     const tokenRecord = {
       token_id,
-      token_number: payload.token_number || Math.floor(100 + Math.random() * 900),
+      token_number: token_number || Math.floor(100 + Math.random() * 900),
       type: type || 'common',
       priority: payload.priority || (type === 'emergency' ? 10 : type === 'disabled' ? 8 : 3),
       status: 'waiting',

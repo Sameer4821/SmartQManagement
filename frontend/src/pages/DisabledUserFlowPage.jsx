@@ -5,7 +5,6 @@ import {
   Circle, CircleDot, Activity
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { supabase } from '../api/supabaseClient';
 import { queueApi } from '../api/index';
 
 
@@ -164,18 +163,12 @@ export default function DisabledUserFlowPage() {
         valid_until: newToken.validUntil.toISOString()
       };
 
-      // 1. Save via Express API (guaranteed server admin access)
-      try {
-        await queueApi.insert(tokenPayload);
-      } catch (apiErr) {
-        console.warn('API queue insert fallback:', apiErr);
-      }
-
-      // 2. Direct Supabase insert
-      try {
-        await supabase.from('queue_tokens').insert([tokenPayload]);
-      } catch (sbErr) {
-        console.warn('Supabase direct insert fallback:', sbErr);
+      // Verified write: checks .error from both Express and Supabase paths
+      const writeRes = await queueApi.write(tokenPayload);
+      if (!writeRes.success) {
+        console.error('Accessibility token booking failed:', writeRes.error);
+        alert('Booking failed. Please try again or contact reception.');
+        return;
       }
 
       setState(prev => ({
@@ -188,6 +181,7 @@ export default function DisabledUserFlowPage() {
       navigate('/token');
     } catch (error) {
       console.error(error);
+      alert('Booking failed. Please try again or contact reception.');
     } finally {
       setLoading(false);
     }
