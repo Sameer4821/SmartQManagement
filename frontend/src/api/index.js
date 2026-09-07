@@ -18,10 +18,23 @@ async function request(path, options = {}) {
 // ponytail: localhost Express fallback only works in dev;
 // in production, Express is unreachable so this always uses Supabase anon.
 // Add Vercel serverless function endpoint if Express path is needed in prod.
+
+// ponytail: client seed doctors use string ids (e.g. "gen1"); DB column is uuid.
+// If we forward a non-uuid doctor_id, Supabase returns 22P02 (invalid_text_representation)
+// and the booking fails. Sanitize once here so all flow pages stay clean.
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const sanitizePayload = (payload) => {
+  const p = { ...payload };
+  if (p.doctor_id != null && !UUID_RE.test(String(p.doctor_id))) p.doctor_id = null;
+  return p;
+};
+
 async function queueWrite(payload) {
+  const clean = sanitizePayload(payload);
+
   // 1. Try Express API (service-role, bypasses RLS)
   try {
-    const res = await request('/api/queue', { method: 'POST', body: payload });
+    const res = await request('/api/queue', { method: 'POST', body: clean });
     if (res.success) return { success: true };
   } catch (_) {
     // Express unreachable or failed — fall through to Supabase
@@ -30,7 +43,7 @@ async function queueWrite(payload) {
   // 2. Fallback: Supabase anon insert (RLS allows public insert)
   const { data, error } = await supabase
     .from('queue_tokens')
-    .insert([payload])
+    .insert([clean])
     .select()
     .single();
 
@@ -42,11 +55,13 @@ async function queueWrite(payload) {
 
 // ── Centralized queue status update ─────────────────────
 async function queueUpdate(tokenId, updates) {
+  const clean = sanitizePayload(updates);
+
   // 1. Try Express API
   try {
     const res = await request(`/api/queue/${encodeURIComponent(tokenId)}/status`, {
       method: 'PATCH',
-      body: updates,
+      body: clean,
     });
     if (res.success) return { success: true };
   } catch (_) {
@@ -56,7 +71,7 @@ async function queueUpdate(tokenId, updates) {
   // 2. Fallback: Supabase anon update
   const { data, error } = await supabase
     .from('queue_tokens')
-    .update(updates)
+    .update(clean)
     .eq('token_id', tokenId)
     .select()
     .single();
