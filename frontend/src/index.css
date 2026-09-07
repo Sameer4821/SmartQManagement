@@ -895,3 +895,148 @@ p {
     border-top: 1px solid var(--border);
   }
 }
+
+/* ---------- Mobile Breakpoint (≤ 640px) ---------- */
+@media (max-width: 640px) {
+  /* Header: shrink logo, hide non-essential labels, allow actions to wrap */
+  .header-inner {
+    padding: 8px 12px !important;
+    gap: 8px !important;
+  }
+  .header-logo {
+    height: 38px !important;
+    max-width: 140px !important;
+  }
+  .header-actions {
+    gap: 6px !important;
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .header-pill {
+    padding: 6px 10px !important;
+  }
+  .header-pill-label {
+    display: none;
+  }
+  .header-pill > span[style*="overflow"] {
+    max-width: 110px;
+  }
+  .header-lang select {
+    max-width: 64px !important;
+  }
+
+  /* Generic page padding shrink */
+  .page {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  .scroll-container {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+
+  /* Cards: reduce padding, allow text wrap */
+  .card {
+    border-radius: 12px !important;
+  }
+  .card-header {
+    padding: 16px 16px 0 !important;
+  }
+  .card-content {
+    padding: 14px !important;
+  }
+  .card-footer {
+    padding: 0 16px 16px !important;
+  }
+  .card-title {
+    font-size: 16px !important;
+  }
+
+  /* Buttons: full width when stacked, no overflow */
+  .btn {
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+  .btn-full-mobile {
+    width: 100%;
+  }
+
+  /* Tables & data boxes: scroll if needed */
+  .data-box {
+    padding: 12px !important;
+  }
+
+  /* Stack any flex row that's flagged with this class */
+  .stack-on-mobile {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .stack-on-mobile > * {
+    width: 100% !important;
+  }
+
+  /* Modals: full width on mobile */
+  .card[style*="maxWidth: 480"],
+  .card[style*="max-width: 480"] {
+    max-width: 100% !important;
+    border-radius: 12px 12px 0 0 !important;
+  }
+
+  /* Header: prevent horizontal overflow at very narrow widths */
+  .header-pill-staff,
+  .header-pill-patient,
+  .header-pill-login,
+  .header-pill-emergency {
+    max-width: 160px;
+  }
+}
+
+/* ---------- Small phones (≤ 400px) ---------- */
+@media (max-width: 400px) {
+  .header-logo {
+    height: 32px !important;
+    max-width: 110px !important;
+  }
+  .header-pill {
+    padding: 5px 8px !important;
+  }
+  .header-pill > span[style*="overflow"] {
+    max-width: 80px;
+  }
+  .card-content {
+    padding: 12px !important;
+  }
+  .card-title {
+    font-size: 15px !important;
+  }
+}
+
+/* ---------- Staff Dashboard mobile rules ---------- */
+@media (max-width: 640px) {
+  .staff-header {
+    padding: 12px 14px !important;
+  }
+  .staff-header-actions {
+    width: 100%;
+    justify-content: stretch;
+  }
+  .staff-header-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 10px 12px !important;
+    font-size: 12px !important;
+  }
+  .patient-hero h2 {
+    font-size: 17px !important;
+  }
+  /* Upcoming queue row: keep position+token visible, but allow meta to wrap */
+  .staff-dashboard-grid {
+    gap: 16px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .staff-header-actions button span:last-child {
+    font-size: 11px;
+  }
+}

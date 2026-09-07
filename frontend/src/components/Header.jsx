@@ -46,7 +46,7 @@ export default function Header() {
       borderBottom: isDark ? '1px solid #27272a' : '1px solid #e2e8f0',
       boxShadow: isDark ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 2px 10px rgba(15, 23, 42, 0.03)',
       transition: 'all 0.16s ease',
-      height: 64,
+      minHeight: 64,
       display: 'flex',
       alignItems: 'center'
     }}>
@@ -54,27 +54,30 @@ export default function Header() {
         width: '100%',
         maxWidth: 1440,
         margin: '0 auto',
-        padding: '0 24px',
+        padding: '10px 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        gap: 16
-      }}>
+        gap: 12,
+        flexWrap: 'wrap'
+      }} className="header-inner">
 
         {/* ── Left: Brand & Hospital Identity ──────────────── */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0, minWidth: 0 }}>
           <Link
             to="/"
             style={{
               display: 'flex',
               alignItems: 'center',
               textDecoration: 'none',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              minWidth: 0
             }}
           >
             <img
               src={logoImg}
               alt="SmartQueue Management Logo"
+              className="header-logo"
               style={{
                 height: 60,
                 width: 'auto',
@@ -87,11 +90,12 @@ export default function Header() {
         </div>
 
         {/* ── Right: Triage Shortcut, Lang, Theme & Auth ─ */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
 
           {/* Emergency Triage Quick Button */}
           <Link
             to="/flow/emergency"
+            className="header-pill header-pill-emergency"
             style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -108,18 +112,19 @@ export default function Header() {
             }}
           >
             <Flaticon name="fi-sr-ambulance" size={13} color="#ffffff" />
-            <span>Emergency</span>
+            <span className="header-pill-label">Emergency</span>
           </Link>
 
           {/* Language Selector */}
-          <div style={{
+          <div className="header-lang" style={{
             display: 'flex',
             alignItems: 'center',
             backgroundColor: isDark ? '#18181b' : '#f8fafc',
             border: isDark ? '1px solid #27272a' : '1px solid #e2e8f0',
             borderRadius: 8,
             padding: '3px 8px',
-            height: 34
+            height: 34,
+            flexShrink: 0
           }}>
             <Flaticon name="fi-rr-globe" size={14} color="#0284c7" style={{ marginRight: 6 }} />
             <select
@@ -132,7 +137,8 @@ export default function Header() {
                 fontWeight: 600,
                 color: isDark ? '#ffffff' : '#334155',
                 outline: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                maxWidth: 90
               }}
             >
               {Object.entries(languages).map(([code, name]) => (
@@ -147,6 +153,7 @@ export default function Header() {
           <button
             onClick={handleAccessibilityToggle}
             title="Toggle Accessibility High Contrast"
+            className="header-icon-btn"
             style={{
               height: 34,
               padding: '0 10px',
@@ -171,9 +178,10 @@ export default function Header() {
 
           {/* User / Staff Navigation */}
           {state.staffInfo ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
               <Link
                 to="/staff/dashboard"
+                className="header-pill header-pill-staff"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -184,11 +192,18 @@ export default function Header() {
                   color: '#ffffff',
                   fontSize: 12,
                   fontWeight: 700,
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  minWidth: 0,
+                  maxWidth: '100%'
                 }}
               >
-                <Flaticon name="fi-sr-shield-check" size={13} color="#ffffff" />
-                <span>{state.staffInfo.name || 'Doctor Console'}</span>
+                <Flaticon name="fi-sr-shield-check" size={13} color="#ffffff" style={{ flexShrink: 0 }} />
+                <span style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  minWidth: 0
+                }}>{state.staffInfo.name || 'Doctor Console'}</span>
               </Link>
               <button
                 onClick={handleLogout}
@@ -211,9 +226,10 @@ export default function Header() {
               </button>
             </div>
           ) : state.patientInfo?.name && state.patientInfo.name !== 'Patient Visitor' ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
               <Link
                 to="/dashboard"
+                className="header-pill header-pill-patient"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -225,11 +241,18 @@ export default function Header() {
                   color: '#0284c7',
                   fontSize: 12,
                   fontWeight: 700,
-                  textDecoration: 'none'
+                  textDecoration: 'none',
+                  minWidth: 0,
+                  maxWidth: '100%'
                 }}
               >
-                <Flaticon name="fi-sr-user" size={13} color="#0284c7" />
-                <span>{state.patientInfo.name}</span>
+                <Flaticon name="fi-sr-user" size={13} color="#0284c7" style={{ flexShrink: 0 }} />
+                <span style={{
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  minWidth: 0
+                }}>{state.patientInfo.name}</span>
               </Link>
               <button
                 onClick={handleLogout}
@@ -256,6 +279,7 @@ export default function Header() {
           ) : (
             <Link
               to="/staff/login"
+              className="header-pill header-pill-login"
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -272,7 +296,7 @@ export default function Header() {
               }}
             >
               <Flaticon name="fi-sr-shield-check" size={13} color="#0284c7" />
-              <span>Staff Login</span>
+              <span className="header-pill-label">Staff Login</span>
             </Link>
           )}
 

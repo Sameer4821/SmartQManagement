@@ -441,11 +441,11 @@ export default function StaffDashboardPage() {
       <div className="staff-header" style={{
         background: 'var(--bg)',
         borderBottom: '1px solid var(--border)',
-        padding: '16px 24px'
+        padding: '16px 16px'
       }}>
         <div style={{ maxWidth: 1600, margin: '0 auto', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
-            <div>
+            <div style={{ minWidth: 0, flex: '1 1 200px' }}>
               <div>
                 <div style={{ fontSize: 19, fontWeight: 800, color: 'var(--slate)' }}>
                   {t.staffDashboardTitle || 'Staff / Doctor Dashboard'}
@@ -456,18 +456,20 @@ export default function StaffDashboardPage() {
               </div>
             </div>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <div className="staff-header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
               <button
                 onClick={handleManualSync}
                 disabled={isSyncing}
+                className="staff-header-btn"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 7,
-                  padding: '9px 16px', borderRadius: 10,
+                  padding: '9px 14px', borderRadius: 10,
                   background: isDark ? '#1e293b' : '#f8fafc',
                   color: isDark ? '#e2e8f0' : '#1e293b',
                   border: '1px solid var(--border)', cursor: 'pointer',
                   fontWeight: 700, fontSize: 13,
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  whiteSpace: 'nowrap'
                 }}
                 title="Refresh queue from backend server"
               >
@@ -477,13 +479,15 @@ export default function StaffDashboardPage() {
 
               <button
                 onClick={() => setShowScannerModal(true)}
+                className="staff-header-btn"
                 style={{
                   display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 16px', borderRadius: 10,
+                  padding: '9px 14px', borderRadius: 10,
                   background: '#0284c7', color: '#ffffff',
                   border: 'none', cursor: 'pointer',
                   fontWeight: 700, fontSize: 13,
-                  boxShadow: '0 3px 10px rgba(2, 132, 199, 0.25)'
+                  boxShadow: '0 3px 10px rgba(2, 132, 199, 0.25)',
+                  whiteSpace: 'nowrap'
                 }}
               >
                 <Camera size={16} />
@@ -509,11 +513,11 @@ export default function StaffDashboardPage() {
       </div>
 
       {/* ── Main Responsive Grid Layout (Desktop Full Width) ──── */}
-      <div style={{ padding: '32px 24px 64px', maxWidth: 1600, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
-        <div style={{
+      <div style={{ padding: '32px 16px 64px', maxWidth: 1600, margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+        <div className="staff-dashboard-grid" style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))',
-          gap: 24,
+          gridTemplateColumns: 'repeat(auto-fit, minmax(min(420px, 100%), 1fr))',
+          gap: 20,
           alignItems: 'start'
         }}>
 
@@ -535,18 +539,19 @@ export default function StaffDashboardPage() {
                 </div>
 
                 <div className="card-content" style={{ padding: '20px' }}>
-                  <div className="patient-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+                  <div className="patient-hero" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 0, flex: '1 1 200px' }}>
                       <div style={{
                         padding: '10px 14px', borderRadius: 12,
                         backgroundColor: 'var(--slate-50)',
                         border: '1px solid var(--border)',
-                        fontSize: 18, fontWeight: 900, color: 'var(--sky-600)'
+                        fontSize: 18, fontWeight: 900, color: 'var(--sky-600)',
+                        flexShrink: 0
                       }}>
                         {formatTokenId(activePatient.id)}
                       </div>
-                      <div>
-                        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--slate)', margin: 0 }}>
+                      <div style={{ minWidth: 0 }}>
+                        <h2 style={{ fontSize: 20, fontWeight: 800, color: 'var(--slate)', margin: 0, wordBreak: 'break-word' }}>
                           {activePatient.patient?.name || 'Walk-in Patient'}
                         </h2>
                         <div style={{ fontSize: 13, color: 'var(--slate-500)', marginTop: 2 }}>
@@ -561,7 +566,8 @@ export default function StaffDashboardPage() {
                         backgroundColor: getPriorityColors(activePatient.type, isDark).bg,
                         color: getPriorityColors(activePatient.type, isDark).text,
                         border: `1px solid ${getPriorityColors(activePatient.type, isDark).border}`,
-                        textTransform: 'capitalize', padding: '6px 12px', fontSize: 12
+                        textTransform: 'capitalize', padding: '6px 12px', fontSize: 12,
+                        flexShrink: 0
                       }}
                     >
                       {activePatient.type}
