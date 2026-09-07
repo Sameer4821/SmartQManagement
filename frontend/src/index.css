@@ -904,7 +904,7 @@ p {
     gap: 8px !important;
   }
   .header-logo {
-    height: 38px !important;
+    height: 75px !important;
     max-width: 140px !important;
   }
   .header-actions {
@@ -923,6 +923,12 @@ p {
   }
   .header-lang select {
     max-width: 64px !important;
+  }
+  .header-icon-btn span {
+    display: none;
+  }
+  .header-icon-btn {
+    padding: 0 8px !important;
   }
 
   /* Generic page padding shrink */

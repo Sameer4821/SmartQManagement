@@ -175,8 +175,8 @@ export default function PatientPortalPage() {
                 src={isDark ? logoDark : logoLight}
                 alt="Hospital Logo"
                 style={{
-                  width: '96px',
-                  height: '96px',
+                  width: '150px',
+                  height: '150px',
                   objectFit: 'contain'
                 }}
               />

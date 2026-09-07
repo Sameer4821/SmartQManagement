@@ -47,7 +47,7 @@ export default function Header() {
       borderBottom: isDark ? '1px solid #27272a' : '1px solid #e2e8f0',
       boxShadow: isDark ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 2px 10px rgba(15, 23, 42, 0.03)',
       transition: 'all 0.16s ease',
-      minHeight: 96,
+      minHeight: 64,
       display: 'flex',
       alignItems: 'center'
     }}>
@@ -55,12 +55,12 @@ export default function Header() {
         width: '100%',
         maxWidth: 1440,
         margin: '0 auto',
-        padding: '10px 16px',
+        padding: '8px 16px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: 12,
-        flexWrap: 'wrap'
+        flexWrap: 'nowrap'
       }} className="header-inner">
 
         {/* ── Left: Brand & Hospital Identity ──────────────── */}
@@ -80,9 +80,9 @@ export default function Header() {
               alt="SmartQueue Management Logo"
               className="header-logo"
               style={{
-                height: 84,
+                height: 48,
                 width: 'auto',
-                maxWidth: 300,
+                maxWidth: 180,
                 objectFit: 'contain',
                 display: 'block'
               }}
@@ -91,7 +91,7 @@ export default function Header() {
         </div>
 
         {/* ── Right: Triage Shortcut, Lang, Theme & Auth ─ */}
-        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'nowrap', minWidth: 0, flexShrink: 1 }}>
 
           {/* Emergency Triage Quick Button */}
           <Link
