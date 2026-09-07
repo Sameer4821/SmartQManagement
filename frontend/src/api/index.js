@@ -24,7 +24,11 @@ async function request(path, options = {}) {
 // and the booking fails. Sanitize once here so all flow pages stay clean.
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const sanitizePayload = (payload) => {
-  const p = { ...payload };
+  const p = {};
+  for (const [k, v] of Object.entries(payload)) {
+    if (v === undefined) continue; // drop undefined so Supabase uses column defaults
+    p[k] = v;
+  }
   if (p.doctor_id != null && !UUID_RE.test(String(p.doctor_id))) p.doctor_id = null;
   return p;
 };
@@ -36,8 +40,8 @@ async function queueWrite(payload) {
   try {
     const res = await request('/api/queue', { method: 'POST', body: clean });
     if (res.success) return { success: true };
-  } catch (_) {
-    // Express unreachable or failed — fall through to Supabase
+  } catch (err) {
+    console.warn('[queueWrite] Express path failed:', err?.message);
   }
 
   // 2. Fallback: Supabase anon insert (RLS allows public insert)
@@ -49,7 +53,10 @@ async function queueWrite(payload) {
 
   // Supabase returns {data, error} — does NOT throw on non-2xx.
   // Catching network errors only misses schema/RLS failures.
-  if (error) return { success: false, error };
+  if (error) {
+    console.error('[queueWrite] Supabase error:', error.message, '| code:', error.code, '| hint:', error.hint, '| details:', error.details, '| payload keys:', Object.keys(clean));
+    return { success: false, error };
+  }
   return { success: true, data };
 }
 
@@ -64,20 +71,24 @@ async function queueUpdate(tokenId, updates) {
       body: clean,
     });
     if (res.success) return { success: true };
-  } catch (_) {
-    // fall through
+  } catch (err) {
+    console.warn('[queueUpdate] Express path failed:', err?.message);
   }
 
   // 2. Fallback: Supabase anon update
+  // ponytail: .single() returns PGRST116 when 0 rows match, which is a false-negative
+  // for an update that simply changed nothing visible. Use .select() (array) instead.
   const { data, error } = await supabase
     .from('queue_tokens')
     .update(clean)
     .eq('token_id', tokenId)
-    .select()
-    .single();
+    .select();
 
-  if (error) return { success: false, error };
-  return { success: true, data };
+  if (error) {
+    console.error('[queueUpdate] Supabase error:', error.message, '| code:', error.code);
+    return { success: false, error };
+  }
+  return { success: true, data: data?.[0] };
 }
 
 // ── Queue API ─────────────────────────────────────────
