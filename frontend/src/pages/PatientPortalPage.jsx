@@ -4,7 +4,8 @@ import { ArrowRight } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Flaticon from '../components/Flaticon';
-import logoImg from '../assets/icon.png';
+import logoDark from '../assets/smart queue_transparent.png';
+import logoLight from '../assets/smart_queue_light_transparent.png';
 
 export default function PatientPortalPage() {
   const { state } = useAppContext();
@@ -171,7 +172,7 @@ export default function PatientPortalPage() {
               justifyContent: 'center'
             }}>
               <img
-                src={logoImg}
+                src={isDark ? logoDark : logoLight}
                 alt="Hospital Logo"
                 style={{
                   width: '96px',
