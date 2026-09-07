@@ -80,7 +80,7 @@ export default function Header() {
               alt="SmartQueue Management Logo"
               className="header-logo"
               style={{
-                height: 48,
+                height: 90,
                 width: 'auto',
                 maxWidth: 180,
                 objectFit: 'contain',
