@@ -169,11 +169,15 @@ export default function StaffDashboardPage() {
       try {
         const rawTokens = await fetchLiveTokens();
         if (Array.isArray(rawTokens) && rawTokens.length > 0) {
-          const serverIds = new Set(rawTokens.map(r => r.token_id || r.id));
           setAppState(prev => {
-            // Merge: keep all local tokens, add/replace any server tokens not in state
-            const merged = [...prev.tokens];
-            rawTokens.forEach(row => {
+            // ponytail: keep only live tokens in state — drop any local token
+            // that the server has finished (completed/cancelled) so the
+            // patient's "View Token" shortcut disappears once the doctor
+            // marks them done.
+            const live = rawTokens.filter(r => r.status !== 'completed' && r.status !== 'cancelled');
+            const liveIds = new Set(live.map(r => r.token_id || r.id));
+            const merged = (prev.tokens || []).filter(t => liveIds.has(t.id));
+            live.forEach(row => {
               const id = row.token_id || row.id;
               if (!merged.some(t => t.id === id)) {
                 merged.push(formatTokenRow(row));
@@ -196,8 +200,11 @@ export default function StaffDashboardPage() {
     setIsSyncing(true);
     try {
       const rawTokens = await fetchLiveTokens();
-      if (rawTokens && rawTokens.length > 0) {
-        const formatted = rawTokens.map(formatTokenRow);
+      // ponytail: drop completed/cancelled so manually-synced state never
+      // resurrects a finished token for the patient.
+      const live = (rawTokens || []).filter(r => r.status !== 'completed' && r.status !== 'cancelled');
+      if (live.length > 0) {
+        const formatted = live.map(formatTokenRow);
         setAppState(prev => ({ ...prev, tokens: formatted }));
         setSuccessMsg(`Queue refreshed: ${formatted.length} active patient(s) found.`);
       } else {

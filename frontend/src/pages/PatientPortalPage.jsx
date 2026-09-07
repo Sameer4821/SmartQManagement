@@ -23,7 +23,12 @@ export default function PatientPortalPage() {
   }, [state.patientInfo, state.staffInfo, navigate]);
 
   const allTokens = state.tokens || [];
-  const activeTokens = allTokens.filter(tok => tok.status === 'active' || tok.status === 'waiting' || tok.status === 'called');
+  // ponytail: context drops completed/cancelled tokens on sync, but defend in
+  // depth so a stale row from localStorage can't display here.
+  const activeTokens = allTokens.filter(
+    tok => tok.status !== 'completed' && tok.status !== 'cancelled' &&
+           (tok.status === 'active' || tok.status === 'waiting' || tok.status === 'called')
+  );
   const departments = state.departments || [];
 
   const patientButtonText = t('lpContinue') !== 'lpContinue'

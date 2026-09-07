@@ -1040,3 +1040,47 @@ p {
     font-size: 11px;
   }
 }
+
+/* ---------- Patient Dashboard mobile rules ---------- */
+@media (max-width: 640px) {
+  .patient-dashboard-page {
+    padding: 16px 12px 32px !important;
+    gap: 16px !important;
+  }
+  .patient-welcome-card {
+    padding: 16px !important;
+  }
+  .patient-welcome-row {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 14px !important;
+  }
+  .patient-welcome-id {
+    flex: none !important;
+  }
+  .patient-welcome-actions {
+    width: 100%;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .patient-welcome-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .patient-view-token-btn {
+    height: 44px !important;
+  }
+  .patient-view-token-id {
+    display: none;
+  }
+  .patient-view-token-label::after {
+    content: " (Active)";
+  }
+}
+
+@media (max-width: 420px) {
+  .patient-welcome-card {
+    padding: 14px !important;
+  }
+}

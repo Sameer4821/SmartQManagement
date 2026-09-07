@@ -128,12 +128,17 @@ export function AppProvider({ children }) {
           ...parsed,
           departments: initialDepartments,
           notifications: [],
-          tokens: (parsed.tokens || []).map(t => ({
-            ...t,
-            timestamp: new Date(t.timestamp),
-            validUntil: new Date(t.validUntil),
-            createdAt: t.createdAt ? new Date(t.createdAt) : new Date(t.timestamp),
-          })),
+          tokens: (parsed.tokens || [])
+            // ponytail: drop finished tokens on rehydrate so a stale
+            // localStorage cache can't resurrect a completed/cancelled token
+            // on the patient dashboard after the doctor marks them done.
+            .filter(t => t.status !== 'completed' && t.status !== 'cancelled')
+            .map(t => ({
+              ...t,
+              timestamp: new Date(t.timestamp),
+              validUntil: new Date(t.validUntil),
+              createdAt: t.createdAt ? new Date(t.createdAt) : new Date(t.timestamp),
+            })),
         };
       }
     } catch (e) { /* ignore */ }
@@ -230,10 +235,12 @@ export function AppProvider({ children }) {
       try {
         const apiRes = await queueApi.getAll();
         if (apiRes && apiRes.success && Array.isArray(apiRes.data) && apiRes.data.length > 0) {
-          setState(prev => ({
-            ...prev,
-            tokens: apiRes.data.map(formatSupabaseTokenRow)
-          }));
+          // ponytail: drop completed/cancelled tokens so the patient dashboard
+          // doesn't show a token the doctor already finished.
+          const live = apiRes.data
+            .filter(r => r.status !== 'completed' && r.status !== 'cancelled')
+            .map(formatSupabaseTokenRow);
+          setState(prev => ({ ...prev, tokens: live }));
           return;
         }
       } catch (apiErr) {
@@ -307,14 +314,25 @@ export function AppProvider({ children }) {
       } else if (payload.eventType === 'UPDATE' && payload.new) {
         const row = payload.new;
         const tokenId = row.token_id || row.id;
-        setState(prev => ({
-          ...prev,
-          tokens: prev.tokens.map(t => t.id === tokenId ? {
-            ...t,
-            status: row.status,
-            completed_at: row.completed_at || t.completed_at
-          } : t)
-        }));
+        const newStatus = row.status;
+        // ponytail: when the doctor marks a token complete, drop it from
+        // client state entirely so the patient dashboard stops showing the
+        // "View Token" shortcut. Patch-only kept completed rows visible.
+        if (newStatus === 'completed' || newStatus === 'cancelled') {
+          setState(prev => ({
+            ...prev,
+            tokens: prev.tokens.filter(t => t.id !== tokenId)
+          }));
+        } else {
+          setState(prev => ({
+            ...prev,
+            tokens: prev.tokens.map(t => t.id === tokenId ? {
+              ...t,
+              status: newStatus,
+              completed_at: row.completed_at || t.completed_at
+            } : t)
+          }));
+        }
       } else if (payload.eventType === 'DELETE' && payload.old) {
         const tokenId = payload.old.token_id || payload.old.id;
         setState(prev => ({

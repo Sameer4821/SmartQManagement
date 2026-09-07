@@ -34,10 +34,10 @@ export default function MedicalServicesDashboardPage() {
   const remainingEmergency = Math.max(0, (state.maxEmergencyPerDay || 50) - emergencyTokens.length);
 
   return (
-    <div style={{
+    <div className="patient-dashboard-page" style={{
       background: isDark ? '#09090b' : '#f8fafc',
       minHeight: 'calc(100vh - 64px)',
-      padding: '24px 20px 48px',
+      padding: '24px 16px 48px',
       display: 'flex',
       flexDirection: 'column',
       gap: 20,
@@ -51,17 +51,17 @@ export default function MedicalServicesDashboardPage() {
       {showEditModal && <EditProfileModal isOpen={showEditModal} onClose={() => setShowEditModal(false)} />}
 
       {/* ── Welcome & Active Token Banner ──── */}
-      <div className="card animate-slide-up" style={{
+      <div className="card patient-welcome-card animate-slide-up" style={{
         borderRadius: 18,
         background: isDark
           ? 'linear-gradient(145deg, #121215 0%, #18181b 100%)'
           : 'linear-gradient(145deg, #ffffff 0%, #f0f9ff 100%)',
         border: isDark ? '1px solid #27272a' : '1px solid #bae6fd',
-        padding: '24px 28px',
+        padding: '20px 22px',
         boxShadow: isDark ? '0 8px 24px rgba(0,0,0,0.5)' : '0 4px 16px rgba(2,132,199,0.06)'
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+        <div className="patient-welcome-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
+          <div className="patient-welcome-id" style={{ display: 'flex', alignItems: 'center', gap: 16, minWidth: 0, flex: '1 1 240px' }}>
             <div style={{
               width: 48,
               height: 48,
@@ -70,22 +70,23 @@ export default function MedicalServicesDashboardPage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              border: isDark ? '1px solid #0369a1' : '1px solid #bae6fd'
+              border: isDark ? '1px solid #0369a1' : '1px solid #bae6fd',
+              flexShrink: 0
             }}>
               <Flaticon name="fi-sr-user" size={24} color="#0284c7" />
             </div>
-            <div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: isDark ? '#ffffff' : '#0f172a', letterSpacing: -0.4 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: isDark ? '#ffffff' : '#0f172a', letterSpacing: -0.4, wordBreak: 'break-word' }}>
                 {t('pdWelcomeBack') || 'Welcome back'}, {patientInfo.name}
               </div>
               <div style={{ display: 'flex', gap: 12, marginTop: 3, flexWrap: 'wrap', fontSize: 12, color: isDark ? '#a1a1aa' : '#64748b' }}>
-                {patientInfo.email && <span>Email: {patientInfo.email}</span>}
+                {patientInfo.email && <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '100%' }}>Email: {patientInfo.email}</span>}
                 {patientInfo.phone && <span>Phone: {patientInfo.phone}</span>}
               </div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="patient-welcome-actions" style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <button
               className="btn btn-outline"
               onClick={() => setShowEditModal(true)}
@@ -106,7 +107,7 @@ export default function MedicalServicesDashboardPage() {
                   setState(prev => ({ ...prev, currentToken: activePatientToken }));
                   navigate('/token');
                 }}
-                className="btn btn-primary"
+                className="btn btn-primary patient-view-token-btn"
                 style={{
                   height: 40,
                   padding: '0 16px',
@@ -115,11 +116,17 @@ export default function MedicalServicesDashboardPage() {
                   fontSize: 13,
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 6
+                  gap: 6,
+                  maxWidth: '100%'
                 }}
               >
                 <Flaticon name="fi-rr-qrcode" size={16} color="#ffffff" />
-                <span>View Token ({activePatientToken.id})</span>
+                <span>
+                  <span className="patient-view-token-label">View Token</span>
+                  <span className="patient-view-token-id" style={{ marginLeft: 6, opacity: 0.85 }}>
+                    ({activePatientToken.id})
+                  </span>
+                </span>
                 <ArrowRight size={14} />
               </button>
             )}
