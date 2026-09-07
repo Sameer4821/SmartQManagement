@@ -5,7 +5,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import { languages } from '../translations/translations';
 import ThemeToggle from './ThemeToggle';
 import Flaticon from './Flaticon';
-import logoImg from '../assets/icon-combined.png';
+import logoDark from '../assets/smart queue_transparent.png';
+import logoLight from '../assets/smart_queue_light_transparent.png';
 
 export default function Header() {
   const navigate = useNavigate();
@@ -75,7 +76,7 @@ export default function Header() {
             }}
           >
             <img
-              src={logoImg}
+              src={isDark ? logoDark : logoLight}
               alt="SmartQueue Management Logo"
               className="header-logo"
               style={{
