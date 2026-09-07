@@ -47,7 +47,7 @@ export default function Header() {
       borderBottom: isDark ? '1px solid #27272a' : '1px solid #e2e8f0',
       boxShadow: isDark ? '0 4px 20px rgba(0, 0, 0, 0.5)' : '0 2px 10px rgba(15, 23, 42, 0.03)',
       transition: 'all 0.16s ease',
-      minHeight: 64,
+      minHeight: 96,
       display: 'flex',
       alignItems: 'center'
     }}>
@@ -80,9 +80,9 @@ export default function Header() {
               alt="SmartQueue Management Logo"
               className="header-logo"
               style={{
-                height: 60,
+                height: 84,
                 width: 'auto',
-                maxWidth: 220,
+                maxWidth: 300,
                 objectFit: 'contain',
                 display: 'block'
               }}
